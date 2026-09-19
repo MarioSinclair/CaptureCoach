@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capture Coach — American Circular</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0a0d12; --bg-2:#0e131a;
+  --card:#141a23; --card-2:#111721; --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.14);
+  --ink:#e9eef6; --ink-2:#c3ccda; --muted:#8793a5; --faint:#5e6a7c;
+  --brand:#34d399; --brand-2:#10b981; --brand-soft:rgba(52,211,153,.11); --brand-line:rgba(52,211,153,.28);
+  --info:#38bdf8; --info-soft:rgba(56,189,248,.10);
+  --ok:#34d399; --ok-bg:rgba(52,211,153,.12);
+  --bad:#fb7185; --bad-bg:rgba(251,113,133,.12);
+  --warn:#fbbf24; --warn-bg:rgba(251,191,36,.11);
+  --r:14px; --r-sm:10px;
+  --sh:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -12px rgba(0,0,0,.7);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+
+/* ───────────────────────── masthead ───────────────────────── */
+.top{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+  background:linear-gradient(140deg,#0d1a1c 0%,#0c141d 55%,#0a0d12 100%)}
+.top::before{content:"";position:absolute;inset:-70% 55% 30% -8%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(52,211,153,.13),transparent 70%)}
+.top-in{position:relative;max-width:1080px;margin:0 auto;padding:16px 20px 18px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px;flex:none}
+.brand svg{flex:none}
+.brand .bn{font-size:13.5px;font-weight:650;letter-spacing:.01em;white-space:nowrap}
+.brand .bt{font-size:11px;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;
+  padding-left:10px;border-left:1px solid var(--line-2);white-space:nowrap}
+.top h1{margin:0;font-size:19px;letter-spacing:-.015em;font-weight:660;white-space:nowrap}
+.top h1 .g{background:linear-gradient(95deg,var(--brand),var(--info));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+@media (max-width:700px){
+  .top-in{gap:10px} .top h1{white-space:normal;font-size:17px}
+}
+
+main{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px;margin-bottom:16px;box-shadow:var(--sh)}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.11em;color:var(--faint);
+  margin:0 0 14px;font-weight:650;display:flex;align-items:center;gap:9px}
+h2 .sn{width:19px;height:19px;border-radius:6px;background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center;font-size:10.5px;font-family:var(--mono);letter-spacing:0}
+
+/* ───────────────────────── shooting guide ───────────────────────── */
+details.guide>summary{cursor:pointer;list-style:none;font-size:11.5px;text-transform:uppercase;
+  letter-spacing:.11em;color:var(--faint);font-weight:650;display:flex;align-items:center;gap:8px}
+details.guide>summary::-webkit-details-marker{display:none}
+details.guide>summary::before{content:"▾";font-size:10px;color:var(--brand);transition:transform .18s}
+details.guide:not([open])>summary::before{transform:rotate(-90deg)}
+details.guide[open]>summary{margin-bottom:16px}
+.views{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:12px}
+.vcard{border:1px solid var(--line);border-radius:var(--r-sm);padding:14px;background:var(--card-2);
+  transition:border-color .18s,transform .18s}
+.vcard:hover{border-color:var(--brand-line);transform:translateY(-2px)}
+.vcard h3{margin:0 0 7px;font-size:14.5px;display:flex;align-items:center;gap:9px;font-weight:640}
+.vcard .n{width:21px;height:21px;border-radius:7px;background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center;font-size:11px;font-family:var(--mono);flex:none}
+.vcard p{margin:0;font-size:13.5px;color:var(--muted)}
+.vcard p.good{margin-top:7px;padding-top:7px;border-top:1px dashed var(--line);color:var(--ink-2)}
+.vcard b{color:var(--ink);font-weight:620}
+.tips{list-style:none;padding:0;margin:16px 0 0;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:10px 22px}
+.tips li{font-size:13.5px;padding-left:20px;position:relative;color:var(--muted)}
+.tips li::before{content:"";position:absolute;left:5px;top:10px;width:5px;height:5px;
+  border-radius:50%;background:var(--brand)}
+.tips li b{color:var(--ink);font-weight:620}
+
+/* ───────────────────────── input ───────────────────────── */
+#drop{border:1.5px dashed var(--line-2);border-radius:var(--r);padding:34px 16px;text-align:center;
+  background:var(--card-2);cursor:pointer;transition:border-color .18s,background .18s}
+#drop:hover{border-color:var(--brand-line)}
+#drop.over{border-color:var(--brand);background:var(--brand-soft)}
+#drop strong{display:block;font-size:15.5px;margin-bottom:4px;font-weight:620}
+#drop span{color:var(--muted);font-size:13.5px}
+button{font:inherit;font-size:14px;border-radius:9px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,.04);color:var(--ink);padding:9px 15px;cursor:pointer;
+  transition:background .16s,border-color .16s,transform .1s}
+button:hover{background:rgba(255,255,255,.08);border-color:var(--line-2)}
+button:active{transform:translateY(1px)}
+button.primary{background:linear-gradient(180deg,var(--brand),var(--brand-2));color:#04150f;
+  border-color:transparent;font-weight:660}
+button.primary:hover{filter:brightness(1.07)}
+button.primary:disabled{background:rgba(255,255,255,.05);color:var(--faint);
+  border-color:var(--line);cursor:not-allowed;filter:none}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px;margin-top:16px}
+.qi{border:1px solid var(--line);border-radius:var(--r-sm);padding:9px;background:var(--card-2)}
+.qi img{width:100%;height:118px;object-fit:cover;border-radius:7px;background:#1c232e;display:block}
+.qi .nm{font-size:11.5px;color:var(--muted);margin:8px 0 6px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+select{width:100%;font:inherit;font-size:13.5px;padding:7px 8px;border-radius:8px;
+  border:1px solid var(--line-2);background:#1a212b;color:var(--ink)}
+.qi .rm{margin-top:7px;width:100%;font-size:12.5px;padding:6px}
+#status{font-size:13px;color:var(--muted);margin-left:auto;font-family:var(--mono)}
+
+/* ───────────────────────── results ───────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.b-usable{background:var(--ok-bg);color:var(--ok)}
+.b-retake{background:var(--bad-bg);color:var(--bad)}
+.b-needs_review{background:var(--warn-bg);color:var(--warn)}
+.res{display:flex;gap:16px;border:1px solid var(--line);border-radius:var(--r);padding:14px;
+  margin-bottom:11px;background:var(--card-2)}
+.res img{width:148px;height:148px;object-fit:cover;border-radius:var(--r-sm);background:#1c232e;flex:none}
+.res .body{flex:1;min-width:0}
+.res h3{margin:0 0 3px;font-size:14.5px;display:flex;align-items:center;gap:10px;
+  flex-wrap:wrap;font-family:var(--mono);font-weight:600}
+.vtag{font-size:11px;color:var(--muted);font-family:var(--mono);padding:2px 8px;
+  border-radius:5px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+.finding{border-left:2px solid var(--line-2);padding:7px 0 7px 12px;margin:9px 0}
+.finding.retake{border-color:var(--bad)} .finding.review{border-color:var(--warn)}
+.finding .iss{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 8px;
+  border-radius:8px;font-size:14px;font-weight:700;letter-spacing:.005em;margin-bottom:3px}
+.finding .iss .mk{width:17px;height:17px;border-radius:50%;display:grid;place-items:center;
+  font-size:11px;font-weight:800;background:currentColor;flex:none}
+.finding .iss .mk i{font-style:normal;color:var(--card-2)}
+.finding .iss .raw{font-family:var(--mono);font-size:10.5px;font-weight:500;opacity:.7;
+  letter-spacing:.03em;text-transform:none}
+.finding.retake .iss{background:var(--bad-bg);color:var(--bad);
+  border:1px solid rgba(251,113,133,.32)}
+.finding.review .iss{background:var(--warn-bg);color:var(--warn);
+  border:1px solid rgba(251,191,36,.32)}
+.finding .det{font-size:14px;margin:3px 0;color:var(--ink-2)}
+.finding .act{font-size:14px;font-weight:600;color:var(--ink)}
+.src{font-size:10px;padding:2px 7px;border-radius:5px;background:rgba(255,255,255,.06);
+  color:var(--faint);margin-left:7px;letter-spacing:.05em}
+.src.ai{background:var(--info-soft);color:var(--info)}
+.prov{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-family:var(--mono);
+  padding:2px 8px;border-radius:5px;border:1px solid var(--line);color:var(--faint);
+  background:rgba(255,255,255,.03);letter-spacing:.03em}
+.prov.live{border-color:var(--brand-line);background:var(--brand-soft);color:var(--brand)}
+.prov.off{border-color:rgba(251,191,36,.3);background:var(--warn-bg);color:var(--warn)}
+.mm{background:var(--warn-bg);border:1px solid rgba(251,191,36,.3);border-radius:var(--r-sm);
+  padding:10px 12px;font-size:13.5px;margin-top:10px;color:var(--ink-2)}
+.clean{color:var(--ok);font-size:14px;font-weight:550}
+details.ev{margin-top:10px}
+details.ev summary{font-size:11.5px;color:var(--faint);cursor:pointer;font-family:var(--mono)}
+details.ev pre{font-size:11px;background:#0a0e14;border:1px solid var(--line);padding:11px;
+  border-radius:9px;overflow:auto;margin:8px 0 0;color:var(--ink-2);line-height:1.55}
+.next{background:linear-gradient(120deg,rgba(52,211,153,.13),rgba(56,189,248,.08));
+  border:1px solid var(--brand-line);border-radius:var(--r);padding:15px 17px;font-size:15.5px;
+  font-weight:600;margin-bottom:15px;color:var(--ink)}
+.tally{display:flex;gap:18px;font-size:13px;color:var(--muted);margin-bottom:14px;flex-wrap:wrap}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:7px}
+table.ck{width:100%;border-collapse:collapse}
+table.ck th,table.ck td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);font-size:14px}
+table.ck tr:last-child td{border-bottom:none}
+table.ck th{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);font-weight:650}
+.st{font-weight:660;font-size:13px}
+.st.satisfied{color:var(--ok)} .st.missing{color:var(--bad)}
+.st.all_need_retake,.st.unconfirmed{color:var(--warn)}
+.hint{font-size:12.5px;color:var(--muted)}
+.err{background:var(--bad-bg);color:var(--bad);padding:11px 13px;border-radius:var(--r-sm);font-size:14px}
+.rule{margin:14px 0 0;padding:11px 13px;border-radius:var(--r-sm);background:rgba(255,255,255,.028);
+  border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.rule b{color:var(--ink)}
+
+footer{border-top:1px solid var(--line);background:var(--bg-2);margin-top:8px}
+.foot{max-width:1080px;margin:0 auto;padding:22px 20px 34px;font-size:12.5px;color:var(--faint)}
+.foot b{color:var(--muted);font-weight:620}
+.foot p{margin:0 0 9px;max-width:88ch}
+.foot p:last-child{margin-bottom:0}
+
+@media (max-width:620px){
+  .res{flex-direction:column} .res img{width:100%;height:190px}
+  .top-in{padding:14px 16px} main{padding:18px 16px 48px}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="16" cy="16" r="14.5" stroke="url(#g1)" stroke-width="1.6" opacity=".45"/>
+        <path d="M16 5.5a10.5 10.5 0 0 1 9.1 15.75" stroke="url(#g1)" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M16 26.5A10.5 10.5 0 0 1 6.9 10.75" stroke="url(#g1)" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="3.6" fill="url(#g1)"/>
+        <defs><linearGradient id="g1" x1="4" y1="4" x2="28" y2="28">
+          <stop stop-color="#34d399"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
+      </svg>
+      <span class="bn">American Circular</span>
+      <span class="bt">Intake Capture</span>
+    </div>
+    <h1><span class="g">Capture Coach</span></h1>
+  </div>
+</div>
+
+<main>
+
+<div class="card">
+  <details class="guide" open>
+    <summary>How to shoot it — 3 photos per device</summary>
+
+    <div class="views">
+      <div class="vcard">
+        <h3><span class="n">1</span>Front</h3>
+        <p>The whole front, edges included.</p>
+        <p class="good">Fits in frame with room around it</p>
+      </div>
+      <div class="vcard">
+        <h3><span class="n">2</span>Back / ports</h3>
+        <p>The back, showing the ports.</p>
+        <p class="good">Nothing cut off at the edges</p>
+      </div>
+      <div class="vcard">
+        <h3><span class="n">3</span>DEMO label</h3>
+        <p>Close-up of the orange DEMO sticker.</p>
+        <p class="good">Whole label visible, nothing on top</p>
+      </div>
+    </div>
+
+    <ul class="tips">
+      <li><b>Hold still.</b> Tap the screen to focus.</li>
+      <li><b>Get light on it.</b> Don't stand in your own shadow.</li>
+      <li><b>Bright glare spot?</b> Move a step to the side.</li>
+      <li><b>Front and back:</b> step back, fit the whole device.</li>
+      <li><b>Label:</b> get close, fill the frame.</li>
+      <li><b>Move tape, fingers and cables</b> off the label first.</li>
+    </ul>
+
+  </details>
+</div>
+
+<div class="card">
+  <h2><span class="sn">1</span>Photos for one device</h2>
+  <div id="drop">
+    <strong>Drop photos here, or click to choose</strong>
+    <span>JPEG or PNG. Add every photo you took for this one device.</span>
+  </div>
+  <input type="file" id="file" multiple accept="image/*" hidden>
+  <div class="queue" id="queue"></div>
+  <div class="row" style="margin-top:16px">
+    <button class="primary" id="go" disabled>Evaluate set</button>
+    <button id="clear">Clear</button>
+    <span id="status"></span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Or run a supplied practice set</h2>
+  <div class="row" id="practice"><span class="hint">loading&hellip;</span></div>
+  <p class="hint" style="margin:12px 0 0">Sets from <code>photo_sets.csv</code>, read straight from <code>images/</code>.</p>
+</div>
+
+<div id="out"></div>
+</main>
+
+<footer>
+  <div class="foot">
+    <p><b>What this tool does.</b> It judges photograph quality and view coverage, nothing else.
+      It does not read, transcribe or verify label text, serial numbers, device identity or
+      ownership, and it makes no claim about data sanitisation or regulatory compliance. Those
+      belong to the documented ITAD process this capture step feeds, not to a camera assistant.</p>
+    <p><b>Where the AI is.</b> Blur, exposure, glare and whole-device framing are measured in
+      OpenCV against thresholds calibrated on the supplied photographs. A vision model is asked
+      only two things it cannot measure: which view a photo actually shows, and whether anything
+      is covering the DEMO label. No model output can override a measurement.</p>
+    <p>Hackathon prototype built for the American Circular Challenge at Bay Hacks. Not an
+      American Circular product.</p>
+  </div>
+</footer>
+
+<script>
+const VIEWS=[["front","Front"],["rear_ports","Rear / ports"],["label","DEMO label"]];
+// Plain-English name per PHOTO_GUIDE issue code. The raw code is still shown
+// beside it, small -- the spec scores against those exact strings.
+const ISSUE={
+  blur:"Blurry",
+  underexposed:"Too dark",
+  glare_or_overexposed:"Too bright / glare",
+  framing:"Cut off",
+  label_obstructed:"Label covered"
+};
+let queue=[];
+
+const $=s=>document.querySelector(s);
+const drop=$("#drop"), fileIn=$("#file");
+
+drop.onclick=()=>fileIn.click();
+drop.ondragover=e=>{e.preventDefault();drop.classList.add("over")};
+drop.ondragleave=()=>drop.classList.remove("over");
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove("over");add(e.dataTransfer.files)};
+fileIn.onchange=e=>add(e.target.files);
+$("#clear").onclick=()=>{queue=[];render();$("#out").innerHTML="";$("#status").textContent=""};
+
+function guessView(name){
+  const n=name.toLowerCase();
+  if(/label|demo|sticker|tag/.test(n))return "label";
+  if(/rear|back|port|conn/.test(n))return "rear_ports";
+  return "front";
+}
+function add(files){
+  [...files].filter(f=>f.type.startsWith("image/")).forEach(f=>{
+    queue.push({file:f,view:guessView(f.name),url:URL.createObjectURL(f)});
+  });
+  render();
+}
+function render(){
+  const q=$("#queue");
+  q.innerHTML=queue.map((it,i)=>`
+    <div class="qi">
+      <img src="${it.url}" alt="">
+      <div class="nm" title="${esc(it.file.name)}">${esc(it.file.name)}</div>
+      <select data-i="${i}" aria-label="Intended view for ${esc(it.file.name)}">${VIEWS.map(([v,l])=>
+        `<option value="${v}"${v===it.view?" selected":""}>${l}</option>`).join("")}</select>
+      <button class="rm" data-rm="${i}">Remove</button>
+    </div>`).join("");
+  q.querySelectorAll("select").forEach(s=>s.onchange=e=>queue[+e.target.dataset.i].view=e.target.value);
+  q.querySelectorAll("[data-rm]").forEach(b=>b.onclick=e=>{queue.splice(+e.target.dataset.rm,1);render()});
+  $("#go").disabled=queue.length===0;
+}
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+$("#go").onclick=async()=>{
+  const fd=new FormData();
+  queue.forEach(it=>{fd.append("files",it.file);fd.append("views",it.view)});
+  await send("/api/analyze",{method:"POST",body:fd},`Evaluating ${queue.length} photo(s)`);
+};
+
+async function send(url,opts,msg){
+  $("#go").disabled=true;$("#status").textContent=msg+"…";$("#out").innerHTML="";
+  try{
+    const r=await fetch(url,opts);
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.detail||("HTTP "+r.status));
+    show(j);$("#status").textContent="Done.";
+  }catch(e){
+    $("#out").innerHTML=`<div class="card"><div class="err">${esc(e.message)}</div></div>`;
+    $("#status").textContent="Failed.";
+  }
+  $("#go").disabled=queue.length===0;
+}
+
+function show(d){
+  const s=d.summary,c=s.counts;
+  const ck=s.checklist.map(r=>{
+    const words={satisfied:"Satisfied",missing:"MISSING — no photo supplied",
+      all_need_retake:"Photo supplied, all need a retake",
+      unconfirmed:"Photo supplied, needs human review"}[r.state];
+    return `<tr><td><strong>${esc(r.label)}</strong><div class="hint">${esc(r.needs)}</div></td>
+      <td class="st ${r.state}">${words}</td>
+      <td class="hint">${r.count} photo(s)${r.count?` · ${r.usable} usable, ${r.retake} retake, ${r.review} review`:""}</td></tr>`;
+  }).join("");
+
+  const imgs=d.images.map(im=>{
+    const f=im.findings.map(x=>`
+      <div class="finding ${x.severity}">
+        <div class="iss"><span class="mk"><i>${x.severity==="review"?"?":"!"}</i></span>
+          ${esc(ISSUE[x.code]||x.code)}${x.severity==="review"?" — check this":""}
+          <span class="raw">${esc(x.code)}</span></div>
+        <div class="det">${esc(x.detail)}</div>
+        <div class="act">→ ${esc(x.guidance)}</div>
+      </div>`).join("");
+    const sem=im.semantic||{};
+    const mm=im.view_mismatch?`<div class="mm"><b>View mismatch.</b> ${esc(im.view_mismatch.message)} A person should check which view this really is.</div>`:"";
+    return `<div class="res">
+      <img src="${im.thumb||""}" alt="">
+      <div class="body">
+        <h3>${esc(im.filename||im.image_id)} <span class="badge b-${im.status}">${esc(im.status.replace("_"," "))}</span>
+          <span class="vtag">${esc((VIEWS.find(v=>v[0]===im.intended_view)||[,im.intended_view])[1])}</span></h3>
+        ${im.error?`<div class="err">${esc(im.error)}</div>`:""}
+        ${f||(im.status==="usable"?'<div class="clean">✓ No problems found. Good for this view.</div>':"")}
+        ${mm}
+        <details class="ev"><summary>Evidence</summary>
+          <pre>${esc(JSON.stringify({measurements:im.metrics,ai_read:{observed_view:sem.observed_view,confidence:sem.confidence,note:sem.note,status:sem.status,reason:sem.reason,from_cache:sem.cached}},null,1))}</pre>
+        </details>
+      </div></div>`;
+  }).join("");
+
+  $("#out").innerHTML=`
+    <div class="card">
+      <h2><span class="sn">2</span>What to do next</h2>
+      <div class="next">${esc(s.next_action)}</div>
+      <div class="tally">
+        <span><span class="dot" style="background:var(--ok)"></span>${c.usable} usable</span>
+        <span><span class="dot" style="background:var(--bad)"></span>${c.retake} need a retake</span>
+        <span><span class="dot" style="background:var(--warn)"></span>${c.needs_review} need human review</span>
+      </div>
+      <table class="ck"><thead><tr><th>Required view</th><th>Status</th><th>Photos</th></tr></thead>
+      <tbody>${ck}</tbody></table>
+      <p class="rule"><b>Missing and retake are different findings.</b> A view is missing only when
+      no photo was supplied for it. A blurry front photo is a front photo needing a retake, not an
+      absent one — the set is complete, but not yet good.</p>
+    </div>
+    <div class="card"><h2><span class="sn">3</span>Each photo</h2>${imgs}</div>`;
+}
+
+fetch("/api/practice").then(r=>r.json()).then(d=>{
+  const el=$("#practice");
+  if(!d.sets||!d.sets.length){el.innerHTML='<span class="hint">No practice CSVs found.</span>';return}
+  el.innerHTML=d.sets.map(s=>`<button data-set="${s.set_id}">${s.set_id} · ${s.device_id} · ${s.images.length} photos</button>`).join("");
+  el.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>
+    send("/api/practice/"+b.dataset.set,{method:"POST"},"Evaluating "+b.dataset.set));
+});
+fetch("/api/health").then(r=>r.json()).then(h=>{
+  if(h.semantic_checks!=="available")
+    $("#status").textContent="AI label checks unavailable — measured checks still run.";
+});
+</script>
+</body>
+</html>

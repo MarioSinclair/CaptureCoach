@@ -1,0 +1,23 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+out/
+cache/
+.DS_Store
+
+# challenge package: photos, indexes and the organisers' own documents
+images/
+*.csv
+CHALLENGE.md
+PHOTO_GUIDE.md
+RULES_AND_JUDGING.md
+PACKAGE_README.md
+
+# submission drafts
+SUBMISSION.md
+devpost.txt
+
+# working notes, not shipped
+CALIBRATION.md
+scripts/
